@@ -547,6 +547,7 @@ function setPromotionTeam(colour) {
  * Open the pawn promotion dialog.
  * This is an **asynchronous function**, and returns a {@link Promise}
  * which resolves when a button is selected
+ * @returns {Promise<typeof Piece>}
  */
 function getPromotion() {
   return new Promise(resolve => {
@@ -1075,6 +1076,13 @@ class Board {
     let notationOverride = null;
     // Whether to still add suffixes for check, checkmate, etc. when notationOverride is defined
     let keepSuffixes = true;
+    // Any suffixes to add before the check/checkmate/stalemate ones.
+    // Used for pawn promotion notation
+    let suffixBeforeCheck = '';
+    // The piece to replace the old one with.
+    // The replacement only happens after notation is generated.
+    // Used for pawn promotion notation
+    let newPiece = null;
 
     // ----- Special move considerations -----
     // --- En passant ---
@@ -1169,16 +1177,22 @@ class Board {
         setPromotionTeam(toMove.colour);
         // Get the new piece choice from the player
         const piece = await getPromotion();
-        toMove = new piece(toMove.colour);
+        newPiece = new piece(toMove.colour);
+        newPiece.hasMoved = true;
         // Override notation
-        notationOverride = `${move}=${toMove.letter}`;
+        suffixBeforeCheck = `=${newPiece.letter}`;
       }
     }
 
     // ----- Actually executing the move -----
-    this.pieces[destRow][destCol] = toMove;
+    // The active piece, either `newPiece` if specified or just `toMove`.
+    // The newest piece is the one that should be placed on the board
+    // and the one whose listeners should be called.
+    // However, the original piece (`toMove`) should always be used for notation
+    const activePiece = newPiece || toMove;
+    this.pieces[destRow][destCol] = activePiece;
     this.pieces[sourceRow][sourceCol] = null;
-    toMove.hasMoved = true;
+    activePiece.hasMoved = true;
 
     // Call pseudo-listeners
     for (const row of this.pieces) {
@@ -1186,7 +1200,7 @@ class Board {
         piece.onGlobalMove();
       }
     }
-    toMove.onMove(sourceRow, sourceCol, destRow, destCol);
+    activePiece.onMove(sourceRow, sourceCol, destRow, destCol);
 
     // ----- Representing the move in chess notation and checking for check/chekmate/stalemate -----
     if (notationOverride && !keepSuffixes) {
@@ -1199,7 +1213,7 @@ class Board {
       const mate = enemyKing.isCheckmated(this.pieces, enemyKingRow, enemyKingCol);
       const stalemate = !mate && enemyKing.isStalemated(this.pieces, enemyKingRow, enemyKingCol);
 
-      if (mate) endGame(toMove.colour, 'checkmate');
+      if (mate) endGame(activePiece.colour, 'checkmate');
       else if (stalemate) endGame(null, 'stalemate');
 
       // $ if stalemated, # if checkmated, + if checked, nothing otherwise
@@ -1219,13 +1233,13 @@ class Board {
         }
 
         if (!capture) {
-          this.moves.push(`${toMove.letter}${disambiguator}${moveToNotation(destRow, destCol)}${suffix}`);
+          this.moves.push(`${toMove.letter}${disambiguator}${moveToNotation(destRow, destCol)}${suffixBeforeCheck}${suffix}`);
         } else {
           // If the piece moving has no letter set (pawns), use its starting file as the letter
           // instead of something like `N` or `K`
           const letter = toMove.letter || colToNotation(sourceCol);
 
-          this.moves.push(`${letter}${disambiguator}x${moveToNotation(destRow, destCol)}${suffix}`);
+          this.moves.push(`${letter}${disambiguator}x${moveToNotation(destRow, destCol)}${suffixBeforeCheck}${suffix}`);
         }
       }
     }
