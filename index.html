@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Give your game / page a title! -->
+  <title>Chess</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <!-- Try to preload the images used by the canvas -->
+  <link rel="preload" as="image" href="images/pawn_white.png" />
+  <link rel="preload" as="image" href="images/pawn_black.png" />
+  <link rel="preload" as="image" href="images/bishop_white.png" />
+  <link rel="preload" as="image" href="images/bishop_black.png" />
+  <link rel="preload" as="image" href="images/king_white.png" />
+  <link rel="preload" as="image" href="images/king_black.png" />
+  <link rel="preload" as="image" href="images/knight_white.png" />
+  <link rel="preload" as="image" href="images/knight_black.png" />
+  <link rel="preload" as="image" href="images/queen_white.png" />
+  <link rel="preload" as="image" href="images/queen_black.png" />
+  <link rel="preload" as="image" href="images/rook_white.png" />
+  <link rel="preload" as="image" href="images/rook_black.png" />
+
+  <!-- This will load the script file AFTER the document is loaded -->
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <dialog id="welcome-dialog">
+    <h1>Welcome to Chess!</h1>
+    <p>
+      This is a JavaScript implementation of Chess using the HTML5 canvas.
+      Features include:
+    <ul>
+      <li>Preview of valid moves for a piece</li>
+      <li>Check, checkmate, and stalemate, disallowing invalid moves</li>
+      <li>En passant</li>
+      <li>Pawn promotion</li>
+      <li>Castling</li>
+      <li>
+        Accurate movelist, including proper notation of captures,
+        checks/checkmate, and using ranks/files to disambiguate where required
+      </li>
+      <li>
+        The ability to store/load games using
+        <a href="https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation" target="_blank">FEN</a>
+      </li>
+    </ul>
+    </p>
+    <h2>How to play</h2>
+    <p>
+      The player whose turn it is is indicated on the sidebar, at the top.
+      White is first to move.
+    </p>
+    <p>
+      To make a move, click the desired piece. Its valid moves will be displayed.
+      Then, click the target location. A piece can be deselected by clicking on it,
+      another piece, or any square which is not a valid move location.
+    </p>
+    <p>
+      If desired, the board can be rotated to place black at the bottom by clicking
+      the "Flip Board" button on the sidebar.
+    </p>
+    <h2>How to win</h2>
+    <p>
+      <img src="images/king_white.png" title="The King" alt="An image of the king piece">
+      <img src="images/king_black.png" title="The King" alt="An image of the king piece">
+      <br>
+      The goal of the game is to put your opponent's king into <b>checkmate</b>.
+      Checkmate is a situation where the enemy king is both
+      <b>threatened by one of your pieces</b>,
+      and <b>can make no moves to save the king</b>.
+      Moves to save the king <b>include</b> moves made by pieces
+      <b>other than the king</b>, such as moves to block a <b>check</b>
+      (when one or more pieces threaten the king) or to capture the checking piece.
+    </p>
+    <p>
+      It is also possible to lose if you run out of time.
+      Timers are shown on the right of the bar for each player,
+      above and below the board. In this implementation,
+      each player starts with 10 minutes and cannot gain more time.
+    </p>
+    <p>
+      The game will <b>tie</b> if a <b>stalemate</b> occurs,
+      a situation in which a player's king is <b>not in check</b>,
+      and they have <b>no valid moves left</b>.
+      This is <b>not</b> a win, since the king is not in check.
+    </p>
+    <p>
+      Other stalemate conditions in chess exist based on move repetition
+      or unwinnable board states, but they have not been implemented.
+    </p>
+    <button class="button" id="welcome-dismiss">Dismiss</button>
+  </dialog>
+  <dialog id="promotion-dialog">
+    <h1>Pawn Promotion</h1>
+    <p>
+      Select the new piece for the pawn on
+      <span id="promotion-square">a8</span>.
+    </p>
+    <div id="promotion-buttons">
+      <button id="promote-queen"><img src="images/queen_black.png"></button>
+      <button id="promote-rook"><img src="images/rook_black.png"></button>
+      <button id="promote-knight"><img src="images/knight_black.png"></button>
+      <button id="promote-bishop"><img src="images/bishop_black.png"></button>
+    </div>
+  </dialog>
+  <dialog id="end-dialog">
+    <h1 style="margin-top: 0;">Game Over</h1>
+    <div class="end-dialog__images">
+      <img width="72" height="72" src="images/pawn_white.png" class="end-dialog__pfp" id="end-white-img">
+      <img width="72" height="72" src="images/pawn_black.png" class="end-dialog__pfp" id="end-black-img">
+    </div>
+    <p id="end-dialog-text">
+      <span id="end-winner">White wins</span>
+      by
+      <span id="end-reason">checkmate</span>!
+    </p>
+    <button class="button" id="play-again">Play Again</button>
+  </dialog>
+  <main>
+    <div class="game-container">
+      <div class="board-and-players">
+        <div class="player-bar top">
+          <span class="player-bar__name">Black</span>
+          <span class="player-bar__time">10:00</span>
+        </div>
+
+        <canvas width="800" height="800" id="canvas"></canvas>
+        <div class="player-bar bottom">
+          <span class="player-bar__name">White</span>
+          <span class="player-bar__time">10:00</span>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="turn-indicator turn-white">
+          <span class="turn-indicator__text turn-white">White to move</span>
+        </div>
+        <div class="moves-container">
+          <h2>Moves</h2>
+          <div class="moves"></div>
+        </div>
+        <button class="button" id="flip-board">Flip Board</button>
+        <hr>
+        <div class="fen-container">
+          <input id="fen-entry" type="text">
+          <button class="button" id="load-fen">Load from FEN</button>
+        </div>
+        <hr>
+        <button class="button" id="open-welcome">Open Welcome Dialog</button>
+        <hr>
+        <button class="button red" id="restart">Restart</button>
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>

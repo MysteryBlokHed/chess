@@ -1,0 +1,182 @@
+html, body {
+  height: auto;
+  width: auto;
+  font-family: sans-serif;
+  background-color: #242424;
+  color: white;
+}
+
+.button {
+  cursor: pointer;
+  border: none;
+  font-size: 1em;
+  width: 100%;
+  padding: 1rem;
+  color: black;
+  border-radius: 5px;
+}
+
+.button:hover {
+  color: white;
+}
+
+.button.red {
+  background-color: #e81e10;
+}
+
+dialog::backdrop {
+  backdrop-filter: blur(2px);
+}
+
+#canvas {
+  /* For some reason, the canvas seems to be slightly bigger than intended without these rules */
+  width: 800px;
+  height: 800px;
+}
+
+.player-bar {
+  display: flex;
+  justify-content: space-between;
+  width: auto;
+}
+
+.game-container {
+  display: flex;
+  touch-action: manipulation;
+}
+
+.sidebar {
+  min-width: 400px;
+  width: 400px;
+  margin: 1rem;
+  padding: 1rem;
+  background-color: #303030;
+  text-align: center;
+}
+
+.turn-indicator {
+  padding: 1rem;
+  font-weight: bold;
+  text-align: center;
+  user-select: none;
+}
+
+.turn-indicator.turn-white {
+  background-color: white;
+}
+
+.turn-indicator__text.turn-white {
+  color: black;
+}
+
+.turn-indicator.turn-black {
+  background-color: black;
+}
+
+.turn-indicator__text.turn-black {
+  color: white;
+}
+
+.moves-container {
+  background-color: #242424;
+  height: 450px;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-flow: column;
+}
+
+.moves {
+  /* Show scroll bar when there are too many moves */
+  overflow: auto;
+}
+
+.moves__table {
+  border-collapse: separate;
+  border-spacing: 3rem 0;
+}
+
+.moves__number {
+  text-align: right;
+}
+
+#welcome-dialog {
+  min-width: 600px;
+  width: 50vw;
+  max-height: 80vh;
+}
+
+#flip-board {
+  background-color: #33cc33;
+}
+
+.board-and-players {
+  display: flex;
+  flex-direction: column;
+}
+
+.player-bar {
+  background-color: #404040;
+  padding: 0.5rem;
+  align-items: center;
+}
+
+.player-bar__time {
+  background-color: #606060;
+  padding: 0.5rem;
+}
+
+.fen-container {
+  text-align: center;
+}
+
+#fen-entry {
+  width: 95%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#promotion-dialog {
+  width: 350px;
+  height: 190px;
+  text-align: center;
+  margin-top: 350px;
+  margin-left: 225px;
+}
+
+#promotion-square, #end-winner, .player-bar__name {
+  font-weight: bold;
+}
+
+#promotion-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.no-click {
+  cursor: not-allowed;
+}
+
+#end-dialog-text {
+  font-size: 1.25em;
+}
+
+#end-dialog {
+  padding: 2rem;
+  width: 300px;
+  text-align: center;
+}
+
+.end-dialog__images {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.end-dialog__pfp {
+  border: 5px solid #303030;
+  border-radius: 5px;
+}
+
+.end-dialog__pfp.winner {
+  border: 5px solid green;
+}
