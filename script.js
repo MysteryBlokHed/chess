@@ -670,12 +670,12 @@ function endGame(winner, reason) {
   document.querySelector('#end-dialog').showModal();
 }
 
-function resetGame(updateTurn = true) {
+async function resetGame(updateTurn = true) {
   // Rest timers and board state
   resetTimer();
   flipped = false;
   board = new Board();
-  redraw();
+  await redraw();
   // Reset turn if desired
   if (updateTurn) whiteTurn = true;
   updateTurnIndicator();
@@ -980,7 +980,7 @@ class Board {
    * Asynchronous because of {@link Piece#draw}
    * @param {CanvasRenderingContext2D} ctx
    */
-  drawPieces(ctx) {
+  async drawPieces(ctx) {
     // Iterate backwards over rows if the board is flipped
     const rowEntries = flipped
       ? this.pieces.slice().reverse().entries()
@@ -1001,7 +1001,7 @@ class Board {
       }
     }
 
-    return Promise.all(drawPromises);
+    await Promise.all(drawPromises);
   }
 
   highlightSquare(ctx, row, col) {
@@ -1238,8 +1238,7 @@ class Board {
     startTimer(activeTeam);
 
     // Redraw the board
-    drawSquares();
-    this.drawPieces(ctx);
+    await redraw();
 
     // Update movelist and turn indicator
     document.querySelector('.moves').innerHTML = movesToTable(this.moves);
@@ -1678,8 +1677,8 @@ class King extends Piece {
   }
 }
 
+drawSquares();
 let board = new Board();
-redraw();
 
 async function redraw() {
   drawSquares();
@@ -1690,6 +1689,8 @@ async function redraw() {
   // Update FEN for board
   document.querySelector("#fen-entry").value = board.toFen();
 }
+
+redraw();
 
 /**
  * @param {MouseEvent} ev 
@@ -1757,7 +1758,7 @@ document.querySelector('#flip-board').addEventListener('click', () => {
   redraw();
 });
 
-document.querySelector('#load-fen').addEventListener('click', () => {
+document.querySelector('#load-fen').addEventListener('click', async () => {
   // Add confirmation prompt if the game was started before pressing this
   if (lastTimerUpdate) {
     const proceed = confirm('Are you sure you want to load a new board state? This will clear the current timers.');
@@ -1768,9 +1769,9 @@ document.querySelector('#load-fen').addEventListener('click', () => {
   // Create new board if the FEN is valid
   const newBoard = Board.fromFen(fenEntry.value);
   if (newBoard) {
-    resetGame(false);
+    await resetGame(false);
     board = newBoard;
-    redraw();
+    await redraw();
     // Update movelist
     document.querySelector('.moves').innerHTML = movesToTable(board.moves);
   }
