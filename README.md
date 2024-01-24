@@ -1,7 +1,7 @@
 # Chess
 
 A JavaScript implementation of chess.  
-Made for my grade 12 compute science course.
+Made for my high school computer science course.
 
 The game is available to play at <https://chess.adamts.me>.
 It is not fully complete, as described in the modal that appears on load.
